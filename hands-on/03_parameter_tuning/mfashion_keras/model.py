@@ -55,12 +55,17 @@ def train_and_evaluate(output_dir, hparams):
       model = dnn_model(hparams)
     else:
       model = cnn_model(hparams)
-    model.compile(optimizer=tf.keras.optimizers.Adam(#______,), # <TODO> learning_rateをparmeterから受け取れるようにしよう
-		  loss=tf.keras.losses.CategoricalCrossentropy(),
-		  metrics=[tf.keras.metrics.CategoricalAccuracy(), tf.keras.metrics.CategoricalCrossentropy()])
-    model.fit(X_train, y_train,
-              batch_size=hparams["batch_size"],
-              epochs=hparams["train_steps"],
-              validation_split=0.1,
-              callbacks=[tensorboard_callback, earlystopping_callback, callback.MyMetricCallback()])
+    
+    model.compile(
+        optimizer=tf.keras.optimizers.Adam(hparams["_____"]), # <TODO> learning_rateをparmeterから受け取れるようにしよう
+        loss=tf.keras.losses.CategoricalCrossentropy(),
+        metrics=[tf.keras.metrics.CategoricalAccuracy(), tf.keras.metrics.CategoricalCrossentropy()]
+    )
+    model.fit(
+        X_train, y_train,
+        batch_size=hparams["batch_size"],
+        epochs=hparams["train_steps"],
+        validation_split=0.1,
+        callbacks=[tensorboard_callback, earlystopping_callback, callback.MyMetricCallback()]
+    )
     model.save(output_dir, save_format="tf")
