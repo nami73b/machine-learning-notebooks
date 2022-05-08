@@ -3,7 +3,11 @@ import numpy as np
 import os
 from tensorflow.keras.datasets import fashion_mnist
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dropout, Flatten, Dense, BatchNormalization, Activation
-from . import callback
+
+try:
+    import callback
+except ImportError:
+    from . import callback
 
 NUM_CLASSES=10
 
@@ -16,12 +20,12 @@ def preprocess(feature, label=None):
 
 def dnn_model(hparams):
     model = tf.keras.Sequential([
-      Flatten(),
-      Dense(units = 128, activation = tf.nn.relu),
-      Dense(units = 64, activation = tf.nn.relu),
-      Dense(units = 32, activation = tf.nn.relu),
-      Dropout(rate = hparams["dropout_rate"]),
-      Dense(10, activation = 'softmax', name='output'),
+        Flatten(),
+        Dense(units = 128, activation = tf.nn.relu),
+        Dense(units = 64, activation = tf.nn.relu),
+        Dense(units = 32, activation = tf.nn.relu),
+        Dropout(rate = hparams["dropout_rate"]),
+        Dense(10, activation = 'softmax', name='output'),
     ])
     return model
 
@@ -36,8 +40,8 @@ def cnn_model(hparams):
     model.add(Flatten())
     model.add(Dense(128, activation="relu"))
     if hparams["batch_norm"]:
-      model.add(BatchNormalization())
-      model.add(Activation(activation = tf.nn.relu))
+        model.add(BatchNormalization())
+        model.add(Activation(activation = tf.nn.relu))
     model.add(Dropout(hparams["dropout_rate_2"]))
     model.add(Dense(10, activation = 'softmax', name='output'))
     return model
@@ -49,18 +53,27 @@ def train_and_evaluate(output_dir, hparams):
     y_train = tf.keras.utils.to_categorical(y_train, 10)
 
     tensorboard_callback   = tf.keras.callbacks.TensorBoard(log_dir=os.path.join(output_dir, "logs"))
-    earlystopping_callback = ## <TODO> EarlyStoppingを追加しよう
+    ## <TODO> 検証のlossが2回連続で改善しない場合にEarlyStoppingするようにしよう  
+    ## ヒント: 今日のスライド資料のどこかに記載例があります
+    earlystopping_callback = tf.keras.callbacks.EarlyStopping(monitor=___, patience=___, verbose=1)
 
     if hparams["model"] == "dnn":
-      model = dnn_model(hparams)
+        model = dnn_model(hparams)
     else:
-      model = cnn_model(hparams)
-    model.compile(optimizer=tf.keras.optimizers.Adam(#______,), # <TODO> learning_rateをparmeterから受け取れるようにしよう
-		  loss=tf.keras.losses.CategoricalCrossentropy(),
-		  metrics=[tf.keras.metrics.CategoricalAccuracy(), tf.keras.metrics.CategoricalCrossentropy()])
-    model.fit(X_train, y_train,
-              batch_size=hparams["batch_size"],
-              epochs=hparams["train_steps"],
-              validation_split=0.1,
-              callbacks=[tensorboard_callback, earlystopping_callback, callback.MyMetricCallback()])
+        model = cnn_model(hparams)
+    
+    model.compile(
+        ## <TODO> learning_rateをparmeterから受け取れるようにしよう
+        ## ヒント: hparamsはtask.pyで定義されています
+        optimizer=tf.keras.optimizers.Adam(hparams["___"]),
+        loss=tf.keras.losses.CategoricalCrossentropy(),
+        metrics=[tf.keras.metrics.CategoricalAccuracy(), tf.keras.metrics.CategoricalCrossentropy()]
+    )
+    model.fit(
+        X_train, y_train,
+        batch_size=hparams["batch_size"],
+        epochs=hparams["train_steps"],
+        validation_split=0.1,
+        callbacks=[tensorboard_callback, earlystopping_callback, callback.MyMetricCallback()]
+    )
     model.save(output_dir, save_format="tf")

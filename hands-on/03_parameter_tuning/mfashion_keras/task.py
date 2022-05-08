@@ -2,7 +2,11 @@ import argparse
 import json
 import os
 
-from . import model
+try:
+    import model
+except ImportError:
+    from . import model
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -21,7 +25,6 @@ if __name__ == '__main__':
 
     model_names = [name.replace("_model","") for name in dir(model) if name.endswith("_model")]
     parser.add_argument("--model", required=True, help="Type of model. Supported types are {}".format(model_names))
-    parser.add_argument("--job-dir", type=str, default = "fashion")
 
     args = parser.parse_args()
     hparams = args.__dict__
@@ -29,9 +32,6 @@ if __name__ == '__main__':
     output_dir = hparams.pop("output_dir")
     output_dir = os.path.join(
         output_dir,
-        json.loads(
-            os.environ.get("TF_CONFIG", "{}")
-        ).get("task", {}).get("trial", "")
-    )  
-
+        os.environ.get("CLOUD_ML_TRIAL_ID", "")
+    )
     model.train_and_evaluate(output_dir, hparams)
